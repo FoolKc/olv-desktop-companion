@@ -42,7 +42,7 @@ The safeguards below are implemented in code as well as described in the prompt:
 | The character deletes or overwrites your files | Only one folder, only listed text extensions, no `..`, no drive letters, no links out of the folder. Deleting and overwriting **always** open a Windows confirmation box. The character cannot click Yes; no answer within 25 s means No. |
 | A file or web page plants a fake permanent "memory" | `remember_fact` **always** asks you first. |
 | Something you read a minute ago sneaks into a write | For 2 minutes after reading a video, file or screen, and for 30 minutes after any event, every write needs your OK. |
-| Private windows end up in the LLM | Titles of password, bank, mail and chat windows are never sent, and no screenshot is taken while one is in front. Add your own words in `PRIVATE_WORDS` (`companion/pc_watcher.py`). |
+| Private windows end up in the LLM | Window titles that match a word list (password, bank, mail, chat…) are not sent, and no screenshot is taken while such a window is in front. Add your own words in `PRIVATE_WORDS` (`companion/pc_watcher.py`). |
 | A website talks to the local bridge | The bridge listens on `127.0.0.1` only, checks `Origin` and `Host`, and accepts small JSON bodies only. |
 
 Please keep these protections when you change the code. In particular: do not widen the
@@ -70,7 +70,7 @@ to look at your screen while something private is open.
 ## Requirements
 
 - Windows 10/11.
-- A working [Open-LLM-VTuber](https://github.com/Open-LLM-VTuber/Open-LLM-VTuber) install (tested with main `992309c`, v1.2.1+) and an LLM that supports tool calling. For screenshots, the LLM must accept images.
+- A working [Open-LLM-VTuber](https://github.com/Open-LLM-VTuber/Open-LLM-VTuber) install (tested with v1.2.1, main `992309c`) and an LLM that supports tool calling. For screenshots, the LLM must accept images.
 - The **OLV Watch-Along** browser extension (Firefox or Zen); see its [README](https://github.com/FoolKc/olv-watch-along#5-load-the-extension).
 - Python packages `aiohttp` and `mcp` (already in Open-LLM-VTuber's environment). For screenshots also **Pillow**: run `uv add pillow` in the Open-LLM-VTuber folder (use `uv add`, not `pip`, because `uv run` resets the environment to the lock file).
 
@@ -149,7 +149,9 @@ C:/path/to/Open-LLM-VTuber/.venv/Scripts/python.exe -I olv_patch/patch_olv.py C:
 It adds a few lines to two Open-LLM-VTuber files (backups end in `.companion_backup`), copies
 `companion_patch.py` next to them, and does nothing if it is already applied. Then set `CARD_PATH`
 at the top of `src/open_llm_vtuber/agent/agents/companion_patch.py` to the full path of your
-`prompts/user_card.md`. Run the script again after updating Open-LLM-VTuber.
+`prompts/user_card.md`. This must be the same file as `COMPANION_CARD` in step 2 (or its default);
+otherwise `remember_fact` writes to one file and the character reads another.
+Run the script again after updating Open-LLM-VTuber.
 
 Start Open-LLM-VTuber and begin a **new chat**.
 
@@ -192,7 +194,3 @@ you change a safeguard. Issues describing what worked or failed on your setup ar
 - [OLV Watch-Along](https://github.com/FoolKc/olv-watch-along): the browser extension and the original bridge.
 
 Designed and built by **foolkc**, with AI-assisted coding.
-
-## License
-
-MIT, see [LICENSE](LICENSE).
