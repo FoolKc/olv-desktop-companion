@@ -1,14 +1,14 @@
 # OLV Desktop Companion
 
-**Experimental.** Desktop companion tools for [Open-LLM-VTuber](https://github.com/Open-LLM-VTuber/Open-LLM-VTuber) on Windows.
-Your character can watch YouTube with you, look at your screen when you ask, open your apps,
-keep notes in one safe folder and remember things about you, with a confirmation box
-before anything that cannot be undone.
+An experimental set of Windows tools for [Open-LLM-VTuber](https://github.com/Open-LLM-VTuber/Open-LLM-VTuber).
+I built it for my own desktop companion and am sharing it while I work out what needs to be
+more portable. It runs on my setup; I have not tested every combination of Windows, model
+and Open-LLM-VTuber version.
 
-This is the bigger sibling of [OLV Watch-Along](https://github.com/FoolKc/olv-watch-along).
-Watch-Along stays small and focused on watching together; this repo is where the
-desktop features grow. It works on my setup, and it is very much open for ideas,
-fixes and new tools. See [Contributing](#contributing).
+It extends [OLV Watch-Along](https://github.com/FoolKc/olv-watch-along). That project stays focused
+on watching YouTube together. This one adds screen look, an app launcher, a notes folder,
+a user card and PC activity check-ins. Changes that could overwrite or delete data ask for
+your confirmation. If you try it on another setup, bug reports and fixes are welcome.
 
 > "Look at my screen" → the character takes a small screenshot and tells you what it sees.
 > "Open Spotify" → Spotify opens.
@@ -28,13 +28,13 @@ Open-LLM-VTuber setup first.
 - **Notes folder:** list, read, write and delete text files in one folder (default `Desktop\Companion`).
 - **Permanent notes:** `remember_fact` writes one line into your user card, which is put at the top of the prompt on every request.
 - **PC state:** which app is in front, CPU and RAM.
-- **Smarter idle check-ins:** knows which app you are using, and stays quiet while you are away from the keyboard.
+- **Idle check-ins:** knows which app you are using, and stays quiet while you are away from the keyboard.
 - **Sliding window** (with the patch): only the last messages are sent to the LLM, so long chats do not get slower and more expensive.
 
-## Safety first
+## Safety boundaries
 
-The character is an LLM and can be fooled, for example by text in a video description, in a
-file it reads or on your screen. So the important rules live **in code**, not only in the prompt:
+The character can encounter instructions hidden in a video description, a file or your screen.
+The safeguards below are implemented in code as well as described in the prompt:
 
 | Risk | What stops it |
 |---|---|
@@ -153,7 +153,7 @@ at the top of `src/open_llm_vtuber/agent/agents/companion_patch.py` to the full 
 
 Start Open-LLM-VTuber and begin a **new chat**.
 
-## Try it safely
+## Check the safeguards
 
 After setup, you can attack your own setup to see the protections work:
 
@@ -173,8 +173,7 @@ After setup, you can attack your own setup to see the protections work:
 
 ## Contributing
 
-This project grew from one person's daily setup, so there is a lot of room to make it better and
-more general. Ideas that would be great to see:
+This started as my daily setup. Here are some areas where help would be useful:
 
 - Linux and macOS support for `pc_watcher.py` and the confirmation box.
 - A long-term memory: summarize messages that leave the sliding window into a local vector store
@@ -183,8 +182,8 @@ more general. Ideas that would be great to see:
 - More watch sites (Twitch, Bilibili) through new adapters in OLV Watch-Along.
 - Better handling of several monitors.
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) first; the short version is "keep the safety rules
-in code". Issues and pull requests are very welcome, and so are forks shaped to your own setup.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request, especially if
+you change a safeguard. Issues describing what worked or failed on your setup are useful too.
 
 ## Credits
 
