@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.bak
+.env
+conf.yaml
+persona*.txt
+my_persona*.txt
+prompts/user_card.md
+*.companion_tmp
+Claude outputs/
