@@ -3,8 +3,8 @@
 Open-LLM-VTuber starts this file as a separate process (stdio) for each session.
 Note: stdout is the MCP channel, so never print() here.
 
-Tools: get_watching, control_video, play_on_youtube, inspect_pc_state, look_at_screen
-(off by default), launch_app, manage_workspace_file, remember_fact.
+Tools: get_watching, control_video, play_on_youtube, spotify, inspect_pc_state,
+look_at_screen (off by default), launch_app, manage_workspace_file, remember_fact.
 Tool descriptions only say what each tool does; how the character talks about results
 belongs in your prompt (prompts/tool_rules.txt).
 
@@ -42,7 +42,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp import Image as MCPImage
 
-from pc_watcher import capture_screen_jpeg, get_active_window_info, system_load
+from pc_watcher import _exe_name, capture_screen_jpeg, get_active_window_info, system_load
 
 BRIDGE = "http://127.0.0.1:12450"
 
@@ -226,6 +226,82 @@ def play_on_youtube(query: str) -> str:
         return err
     result = _wait_result(r["id"], 30)
     return f"Result: {result}." if result else f"Searched YouTube for {query}, but the browser did not confirm what is playing yet."
+
+
+# ---------------- Spotify ----------------
+# Sends media keys to the Spotify desktop app's window, so it works while Spotify is minimized
+# or in the tray, without touching other players. What is playing comes from the window title.
+WM_APPCOMMAND = 0x0319
+_APPCMD = {"toggle": 14, "next": 11, "previous": 12}     # APPCOMMAND_MEDIA_PLAY_PAUSE / NEXTTRACK / PREVIOUSTRACK
+_IDLE_TITLES = {"spotify", "spotify premium", "spotify free", ""}
+_u32 = ctypes.WinDLL("user32", use_last_error=True)
+_ENUMPROC = ctypes.WINFUNCTYPE(wt.BOOL, wt.HWND, wt.LPARAM)
+_u32.EnumWindows.argtypes = [_ENUMPROC, wt.LPARAM]
+_u32.GetWindowThreadProcessId.argtypes = [wt.HWND, ctypes.POINTER(wt.DWORD)]
+_u32.GetWindowTextW.argtypes = [wt.HWND, wt.LPWSTR, ctypes.c_int]
+_u32.GetClassNameW.argtypes = [wt.HWND, wt.LPWSTR, ctypes.c_int]
+_u32.PostMessageW.argtypes = [wt.HWND, wt.UINT, wt.WPARAM, wt.LPARAM]
+
+
+def _spotify_window():
+    """(hwnd, title) of Spotify's main window, even if hidden in the tray, or (None, "")."""
+    found = []
+
+    def cb(hwnd, _):
+        pid = wt.DWORD()
+        _u32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+        if _exe_name(pid.value).casefold() != "spotify.exe":
+            return True
+        cls = ctypes.create_unicode_buffer(64)
+        _u32.GetClassNameW(hwnd, cls, 64)
+        if not cls.value.startswith("Chrome_WidgetWin"):
+            return True
+        title = ctypes.create_unicode_buffer(300)
+        _u32.GetWindowTextW(hwnd, title, 300)
+        if title.value:
+            found.append((hwnd, title.value))
+        return True
+
+    _u32.EnumWindows(_ENUMPROC(cb), 0)
+    return found[0] if found else (None, "")
+
+
+def _spotify_status(title: str) -> str:
+    if title.strip().casefold() in _IDLE_TITLES:
+        return "Spotify is paused (or nothing is playing)."
+    return f"Spotify is playing: {_safe(title)[:150]}."
+
+
+@mcp.tool()
+def spotify(action: str) -> str:
+    """Control the Spotify desktop app on the user's PC.
+    action: "play", "pause", "next", "previous" or "status" (what is playing now).
+    Use this when they say Spotify, or when the music is playing on Spotify; for videos in the browser use control_video.
+    If Spotify is not open, open it with launch_app first."""
+    action = (action or "").strip().lower()
+    action = {"resume": "play", "continue": "play", "start": "play", "stop": "pause", "skip": "next",
+              "back": "previous", "prev": "previous", "now_playing": "status", "song": "status"}.get(action, action)
+    if action not in ("play", "pause", "next", "previous", "status"):
+        return "Invalid action. Use play, pause, next, previous or status."
+    if action != "status" and _system_turn():
+        return BLOCKED
+    hwnd, title = _spotify_window()
+    if not hwnd:
+        return "Spotify is not open."
+    if action == "status":
+        return _spotify_status(title)
+    paused = title.strip().casefold() in _IDLE_TITLES
+    if (action == "play" and not paused) or (action == "pause" and paused):
+        return "Nothing to do. " + _spotify_status(title)
+    cmd = _APPCMD["toggle" if action in ("play", "pause") else action]
+    _u32.PostMessageW(hwnd, WM_APPCOMMAND, 0, cmd << 16)
+    time.sleep(1.2)                              # give Spotify time to update its title
+    before, (_, title) = title, _spotify_window()
+    if action == "previous" and title == before:   # after a few seconds, the first press only restarts the song
+        _u32.PostMessageW(hwnd, WM_APPCOMMAND, 0, cmd << 16)
+        time.sleep(1.2)
+        _, title = _spotify_window()
+    return "Done. " + _spotify_status(title)
 
 
 # ---------------- PC ----------------

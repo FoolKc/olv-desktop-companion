@@ -11,7 +11,7 @@ a user card and PC activity check-ins. Changes that could overwrite or delete da
 your confirmation. If you try it on another setup, bug reports and fixes are welcome.
 
 > "Look at my screen" → the character takes a small screenshot and tells you what it sees.
-> "Open Spotify" → Spotify opens.
+> "Open Spotify" → Spotify opens. "Skip this song" → the next song plays.
 > "Write that down as ideas.md" → a note appears in the companion folder.
 > "Delete it" → a Windows confirmation box asks *you* first.
 > "Remember that I hate horror games" → after your OK, it knows this in every future chat.
@@ -24,6 +24,7 @@ Open-LLM-VTuber setup first.
 
 - **Watch-along:** everything from OLV Watch-Along (comments on new videos, playback control, "play X"), using the same browser extension.
 - **Look at the screen** (optional): a downscaled screenshot (about 60 KB JPEG) only when you ask. Works with OpenAI-compatible models (for example DeepSeek) after applying the included Open-LLM-VTuber patch.
+- **Spotify control:** play, pause, next, previous and "what song is this" in the Spotify desktop app, also while it is minimized or in the tray. Uses Windows media messages sent to Spotify's window; no Spotify account or API key needed.
 - **Open apps:** a short allow-list (Unity Hub, VS Code, Spotify, Discord, Steam, Notepad, File Explorer, Aseprite). Easy to edit; no shell is used.
 - **Notes folder:** list, read, write and delete text files in one folder (default `Desktop\Companion`).
 - **Permanent notes:** `remember_fact` writes one line into your user card, which is put at the top of the prompt on every request.
