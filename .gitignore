@@ -8,3 +8,5 @@ my_persona*.txt
 prompts/user_card.md
 *.companion_tmp
 Claude outputs/
+start_bridge.bat
+.companion_*.tmp

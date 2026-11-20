@@ -68,6 +68,26 @@ to look at your screen while something private is open.
  prompts/    → rules you add after your own persona
 ```
 
+## Quick setup (Windows)
+
+No coding needed. You only need a working Open-LLM-VTuber (installed with `uv`, as in its own guide).
+
+1. **Download this project:** on GitHub, click **Code → Download ZIP** and unzip it anywhere (for example in Documents).
+2. **Close Open-LLM-VTuber**, then double-click **`setup.bat`** in the unzipped folder. Drag your Open-LLM-VTuber folder into the window, press Enter and answer the questions (your name, screenshots on or off, apply the patch or not).
+   It backs up and edits `conf.yaml` and `mcp_servers.json` for you, adds the rules to the end of your persona, creates your user card and `start_bridge.bat`, and applies the patch if you say yes.
+3. **Install the browser extension** (Firefox or Zen): [OLV Watch-Along on addons.mozilla.org](https://addons.mozilla.org/firefox/addon/olv-watch-along/). For youtube.com, allow **Autoplay → Allow Audio and Video**.
+4. **Write a few lines about yourself** in `prompts/user_card.md`.
+5. **Start Open-LLM-VTuber.** In its settings, change the WebSocket URL to `ws://127.0.0.1:12393/proxy-ws` (only once).
+6. **Double-click `start_bridge.bat`** and keep that window open. Start a new chat.
+
+From then on, you only start Open-LLM-VTuber and `start_bridge.bat`.
+
+- If you used OLV Watch-Along before, setup replaces it: it turns off the `watch-along` server and its rules, because this project includes the same watch tools. Use only this project's `start_bridge.bat`.
+- To see what setup would change without changing anything, open a terminal in the folder and run `setup.bat --dry-run`.
+- To remove it again, double-click `undo_setup.bat`. The patch stays; to remove it, copy back the `.companion_backup` files.
+- Run `setup.bat` again after updating this project or Open-LLM-VTuber; it updates the rules and the patch instead of adding them twice.
+- If Windows will not run `setup.bat` from the ZIP, right-click the ZIP before unzipping → **Properties** → tick **Unblock**, then unzip again.
+
 ## Requirements
 
 - Windows 10/11.
@@ -75,7 +95,9 @@ to look at your screen while something private is open.
 - The **OLV Watch-Along** browser extension (Firefox or Zen); see its [README](https://github.com/FoolKc/olv-watch-along#5-load-the-extension).
 - Python packages `aiohttp` and `mcp` (already in Open-LLM-VTuber's environment). For screenshots also **Pillow**: run `uv add pillow` in the Open-LLM-VTuber folder (use `uv add`, not `pip`, because `uv run` resets the environment to the lock file).
 
-## Setup
+## Manual setup
+
+Use this instead of `setup.bat` if you want to do each step yourself.
 
 ### 1. Turn on the Open-LLM-VTuber proxy
 
@@ -122,7 +144,7 @@ Settings such as comment cooldowns, daily cap and idle times are at the top of t
 
 ### 4. Load the browser extension
 
-Install the OLV Watch-Along extension as described in its README. Nothing changes in the extension.
+Install the OLV Watch-Along extension from [addons.mozilla.org](https://addons.mozilla.org/firefox/addon/olv-watch-along/), or load it as described in its README. Nothing changes in the extension.
 
 ### 5. Add the rules and your user card
 
