@@ -32,6 +32,7 @@ import ctypes.wintypes as wt
 import json
 import os
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
@@ -484,10 +485,7 @@ def manage_workspace_file(action: str, filename: str = "", content: str = "") ->
             if not _confirm("Companion - write file", f"The companion wants to {verb}:\n{shown}\n\n{preview}\n\nAllow?"):
                 return "The user said no in the confirmation box (or it timed out). Nothing was written."
         os.makedirs(os.path.dirname(target), exist_ok=True)
-        tmp = target + ".companion_tmp"
-        with open(tmp, "w", encoding="utf-8") as f:
-            f.write(content)
-        os.replace(tmp, target)
+        _write_atomic(target, content)
         return f"Saved '{shown}'."
 
     if action == "delete":
@@ -501,11 +499,29 @@ def manage_workspace_file(action: str, filename: str = "", content: str = "") ->
     return "Invalid action. Use 'list', 'read', 'write' or 'delete'."
 
 
+def _write_atomic(path: str, text: str) -> None:
+    """Write via a new temporary file next to path, then swap it in.
+    mkstemp creates a brand-new file (O_EXCL), so a link planted under a fixed temp name
+    cannot redirect the write outside the folder."""
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=".companion_", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+        raise
+
+
 # ---------------- User card ----------------
 CARD = os.environ.get("COMPANION_CARD") or os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "prompts", "user_card.md")
 LEARNED_HEADER = "Things you learned about the user:"
 MAX_LEARNED = 40
+CARD_MAX_CHARS = 4000          # the patch puts only this much of the card into the prompt (keep both the same)
 
 
 @mcp.tool()
@@ -532,14 +548,13 @@ def remember_fact(fact: str) -> str:
         return "You already knew that."
     if len(lines) >= MAX_LEARNED:
         return f"Your notes are full ({MAX_LEARNED} facts). Ask the user to clean up their user card file."
+    new_text = head.rstrip() + f"\n\n{LEARNED_HEADER}\n" + "\n".join(lines + [f"- {fact}"]) + "\n"
+    if len(new_text.strip()) > CARD_MAX_CHARS:
+        return (f"Your notes card is full (about {CARD_MAX_CHARS} characters fit into your instructions). "
+                "Ask the user to shorten their user card file. Nothing was saved.")
     if not _confirm("Companion - permanent note", f"The companion wants to remember this forever:\n{fact}\n\nAllow?"):
         return "The user said no in the confirmation box (or it timed out). Nothing was saved."
-    lines.append(f"- {fact}")
-    new_text = head.rstrip() + f"\n\n{LEARNED_HEADER}\n" + "\n".join(lines) + "\n"
-    tmp = CARD + ".companion_tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        f.write(new_text)
-    os.replace(tmp, CARD)
+    _write_atomic(CARD, new_text)
     return f"Saved to your permanent notes: {fact}"
 
 

@@ -30,7 +30,10 @@ def read_card() -> str:
         return ""
     try:
         with open(CARD_PATH, encoding="utf-8") as f:
-            return f.read().strip()[:CARD_MAX_CHARS]
+            card = f.read().strip()
+        if len(card) > CARD_MAX_CHARS:
+            logger.warning(f"[companion] user card is {len(card)} characters; only the first {CARD_MAX_CHARS} are used")
+        return card[:CARD_MAX_CHARS]
     except FileNotFoundError:
         return ""
     except Exception as e:
