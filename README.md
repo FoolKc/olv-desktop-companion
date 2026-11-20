@@ -8,6 +8,10 @@ Turn your [Open-LLM-VTuber](https://github.com/Open-LLM-VTuber/Open-LLM-VTuber) 
 It watches YouTube with you, looks at your screen when you ask, controls Spotify, opens apps,
 keeps notes and remembers things about you. Anything that could overwrite or delete data asks **you** first.
 
+![The character skips a song in Spotify](docs/demo.gif)
+
+*The character skips the song in Spotify and tells you what is playing now.*
+
 > "Look at my screen" → the character takes a small screenshot and tells you what it sees.
 > "Skip this song" → the next song plays in Spotify.
 > "Open VS Code" → VS Code opens.
